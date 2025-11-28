@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Voronoi Honeycomb Visualization</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <!-- Educational Info Panel -->
+    <div id="info-panel">
+        <h1>Honeycomb & Voronoi</h1>
+        <p class="subtitle">The Mathematics of Nature's Architecture</p>
+        
+        <div class="explanation">
+            <p>Bees construct their honeycomb cells in a <strong>hexagonal pattern</strong> — but why?</p>
+            <p>The answer lies in <strong>Voronoi tessellation</strong>: when space is divided so each region contains all points closest to a seed point, hexagonal patterns emerge naturally.</p>
+            <p>Toggle the visualization to see how <span class="highlight">two layers of hexagonally-packed points</span> create the characteristic honeycomb structure through Voronoi cells.</p>
+        </div>
+        
+        <div class="controls">
+            <h2>Visualization</h2>
+            <div class="toggle-group">
+                <button id="toggle-points" class="toggle-btn active">
+                    <span class="icon">●</span>
+                    <span class="label">Seed Points</span>
+                </button>
+                <button id="toggle-cells" class="toggle-btn">
+                    <span class="icon">⬡</span>
+                    <span class="label">Voronoi Cells</span>
+                </button>
+            </div>
+            
+            <div class="slider-group">
+                <label for="grid-size">Grid Size</label>
+                <input type="range" id="grid-size" min="2" max="6" value="3" step="1">
+                <span id="grid-size-value">3×3</span>
+            </div>
+            
+            <div class="slider-group">
+                <label for="layer-spacing">Layer Spacing</label>
+                <input type="range" id="layer-spacing" min="0.5" max="2" value="1" step="0.1">
+                <span id="layer-spacing-value">1.0</span>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <h2>What You're Seeing</h2>
+            <div class="legend-item">
+                <span class="dot layer-a"></span>
+                <span>Layer A (bottom)</span>
+            </div>
+            <div class="legend-item">
+                <span class="dot layer-b"></span>
+                <span>Layer B (top, offset)</span>
+            </div>
+            <div class="legend-item">
+                <span class="cell-icon"></span>
+                <span>Voronoi cell boundary</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading indicator -->
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>Computing Voronoi cells...</p>
+    </div>
+
+    <!-- Three.js and dependencies -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
+
