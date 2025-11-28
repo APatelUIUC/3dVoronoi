@@ -14,10 +14,26 @@ import {
     createVoronoiCellsGroup, 
     createLighting,
     createReferenceGrid,
-    COLORS 
+    COLORS,
+    getThemeForDistribution,
+    THEME_PALETTES
 } from './cellRenderer.js';
 import { initUI } from './ui.js';
 import { generatePoints, DISTRIBUTIONS } from './pointDistributions.js';
+
+/**
+ * Helper to convert hex color to rgba
+ */
+function hexToRgba(hex, alpha = 1) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (result) {
+        const r = parseInt(result[1], 16);
+        const g = parseInt(result[2], 16);
+        const b = parseInt(result[3], 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    return hex;
+}
 
 // Application state
 const state = {
@@ -103,6 +119,12 @@ function generateVisualization() {
         cellsGroup = null;
     }
     
+    // Get theme for current distribution
+    const theme = getThemeForDistribution(state.currentDistribution);
+    
+    // Apply theme to scene
+    applySceneTheme(theme);
+    
     let points, boundingBox;
     
     if (state.currentDistribution === 'honeycomb') {
@@ -127,10 +149,11 @@ function generateVisualization() {
     
     state.points = points;
     
-    // Create points visualization
+    // Create points visualization with themed colors
     pointsGroup = createPointsGroup(state.points, {
         radius: 0.06,
         segments: 16,
+        pointColors: theme.points,
     });
     pointsGroup.visible = state.showPoints;
     scene.add(pointsGroup);
@@ -142,7 +165,7 @@ function generateVisualization() {
         1.0  // padding
     );
     
-    // Create cells visualization with varied colors
+    // Create cells visualization with themed colors
     cellsGroup = createVoronoiCellsGroup(
         state.voronoiCells,
         cellToMeshData,
@@ -151,6 +174,7 @@ function generateVisualization() {
             showFill: true,
             showEdges: true,
             useVariedColors: true,
+            colorPalette: theme.cells,
         }
     );
     cellsGroup.visible = state.showCells;
@@ -160,6 +184,40 @@ function generateVisualization() {
     const distInfo = DISTRIBUTIONS[state.currentDistribution];
     console.log(`Generated ${state.points.length} points (${distInfo?.name || state.currentDistribution})`);
     console.log(`Computed ${state.voronoiCells.length} Voronoi cells`);
+}
+
+/**
+ * Apply theme colors to the scene
+ */
+function applySceneTheme(theme) {
+    // Update scene background
+    scene.background = new THREE.Color(theme.background);
+    
+    // Update fog
+    scene.fog = new THREE.Fog(theme.fog, 8, 25);
+    
+    // Apply UI theme via CSS custom properties
+    applyUITheme(theme.ui);
+}
+
+/**
+ * Apply UI theme colors via CSS custom properties
+ */
+function applyUITheme(uiColors) {
+    const root = document.documentElement;
+    
+    // Update CSS custom properties for the UI
+    root.style.setProperty('--theme-primary', uiColors.primary);
+    root.style.setProperty('--theme-primary-light', uiColors.primaryLight);
+    root.style.setProperty('--theme-primary-dark', uiColors.primaryDark);
+    root.style.setProperty('--theme-accent', uiColors.accent);
+    root.style.setProperty('--theme-text', uiColors.text);
+    
+    // Update body background gradient to match theme
+    const bgColor = uiColors.primaryDark;
+    root.style.setProperty('--theme-bg-gradient', 
+        `radial-gradient(ellipse at 30% 20%, ${hexToRgba(bgColor, 0.3)} 0%, transparent 50%)`
+    );
 }
 
 
