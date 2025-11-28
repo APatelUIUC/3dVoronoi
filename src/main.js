@@ -80,9 +80,9 @@ function initScene() {
     const lights = createLighting();
     lights.forEach(light => scene.add(light));
     
-    // Add reference grid
-    gridGroup = createReferenceGrid(10);
-    scene.add(gridGroup);
+    // Reference grid disabled - not needed for visualization
+    // gridGroup = createReferenceGrid(10);
+    // scene.add(gridGroup);
     
     // Handle window resize
     window.addEventListener('resize', onWindowResize);

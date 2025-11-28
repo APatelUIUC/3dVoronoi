@@ -6,7 +6,7 @@
     <title>3D Voronoi Honeycomb Visualization</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,12 +16,6 @@
     <div id="info-panel">
         <h1>Honeycomb & Voronoi</h1>
         <p class="subtitle">The Mathematics of Nature's Architecture</p>
-        
-        <div class="explanation">
-            <p>Bees construct their honeycomb cells in a <strong>hexagonal pattern</strong> — but why?</p>
-            <p>The answer lies in <strong>Voronoi tessellation</strong>: when space is divided so each region contains all points closest to a seed point, hexagonal patterns emerge naturally.</p>
-            <p>Toggle the visualization to see how <span class="highlight">two layers of hexagonally-packed points</span> create the characteristic honeycomb structure through Voronoi cells.</p>
-        </div>
         
         <div class="controls">
             <h2>Visualization</h2>
@@ -77,12 +71,26 @@
                 <span>Voronoi cell boundary</span>
             </div>
         </div>
+        
+        <div class="explanation">
+            <h2>How It Works</h2>
+            <p>Bees construct their honeycomb cells in a <strong>hexagonal pattern</strong> — but why?</p>
+            <p>The answer lies in <strong>Voronoi tessellation</strong>: when space is divided so each region contains all points closest to a seed point, hexagonal patterns emerge naturally.</p>
+            <p>Toggle the visualization to see how <span class="highlight">two layers of hexagonally-packed points</span> create the characteristic honeycomb structure through Voronoi cells.</p>
+        </div>
     </div>
     
     <!-- Loading indicator -->
     <div id="loading">
         <div class="spinner"></div>
         <p>Computing Voronoi cells...</p>
+    </div>
+    
+    <!-- Keyboard shortcuts hint -->
+    <div class="keyboard-hint">
+        <span>Press</span>
+        <kbd>H</kbd>
+        <span>for controls</span>
     </div>
 
     <!-- Three.js and dependencies -->

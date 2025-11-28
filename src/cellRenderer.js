@@ -50,6 +50,7 @@ export function createCellMesh(meshData, options = {}) {
         showEdges = true,
         edgeColor = COLORS.cellEdge,
         fillColor = COLORS.cellFill,
+        cellIndex = 0,  // Stable index for consistent render order
     } = options;
     
     const group = new THREE.Group();
@@ -69,19 +70,19 @@ export function createCellMesh(meshData, options = {}) {
     geometry.computeVertexNormals();
     
     // Create filled mesh (semi-transparent)
+    // Use stable renderOrder based on cellIndex to prevent flickering
     if (showFill && meshData.indices.length > 0) {
-        const fillMaterial = new THREE.MeshPhysicalMaterial({
+        const fillMaterial = new THREE.MeshStandardMaterial({
             color: fillColor,
             transparent: true,
             opacity: fillOpacity,
             side: THREE.DoubleSide,
-            metalness: 0.1,
-            roughness: 0.3,
             depthWrite: false,
         });
         
         const fillMesh = new THREE.Mesh(geometry, fillMaterial);
-        fillMesh.renderOrder = 1;
+        // Use stable render order: base 100 + cellIndex to ensure consistent ordering
+        fillMesh.renderOrder = 100 + cellIndex;
         group.add(fillMesh);
     }
     
@@ -108,7 +109,8 @@ export function createCellMesh(meshData, options = {}) {
         });
         
         const edgeMesh = new THREE.LineSegments(edgeGeometry, edgeMaterial);
-        edgeMesh.renderOrder = 2;
+        // Edges render after all fills
+        edgeMesh.renderOrder = 1000 + cellIndex;
         group.add(edgeMesh);
     }
     
@@ -132,20 +134,16 @@ export function createPointsGroup(points, options = {}) {
     // Create shared geometries and materials for performance
     const sphereGeometry = new THREE.SphereGeometry(radius, segments, segments);
     
-    const materialLayerA = new THREE.MeshPhysicalMaterial({
+    const materialLayerA = new THREE.MeshStandardMaterial({
         color: COLORS.pointLayerA,
-        emissive: COLORS.pointLayerA,
-        emissiveIntensity: 0.3,
-        metalness: 0.5,
-        roughness: 0.2,
+        metalness: 0.3,
+        roughness: 0.4,
     });
     
-    const materialLayerB = new THREE.MeshPhysicalMaterial({
+    const materialLayerB = new THREE.MeshStandardMaterial({
         color: COLORS.pointLayerB,
-        emissive: COLORS.pointLayerB,
-        emissiveIntensity: 0.4,
-        metalness: 0.5,
-        roughness: 0.2,
+        metalness: 0.3,
+        roughness: 0.4,
     });
     
     for (const point of points) {
@@ -156,50 +154,9 @@ export function createPointsGroup(points, options = {}) {
         group.add(sphere);
     }
     
-    // Add point light glow effect using sprites
-    const glowTexture = createGlowTexture();
-    const glowMaterial = new THREE.SpriteMaterial({
-        map: glowTexture,
-        color: COLORS.pointGlow,
-        transparent: true,
-        opacity: 0.4,
-        blending: THREE.AdditiveBlending,
-    });
-    
-    for (const point of points) {
-        const sprite = new THREE.Sprite(glowMaterial.clone());
-        sprite.position.set(point.x, point.y, point.z);
-        sprite.scale.set(radius * 4, radius * 4, 1);
-        group.add(sprite);
-    }
-    
     return group;
 }
 
-/**
- * Create a glow texture for point sprites
- * @returns {THREE.CanvasTexture}
- */
-function createGlowTexture() {
-    const size = 64;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    
-    const gradient = ctx.createRadialGradient(
-        size / 2, size / 2, 0,
-        size / 2, size / 2, size / 2
-    );
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.5)');
-    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, size, size);
-    
-    return new THREE.CanvasTexture(canvas);
-}
 
 /**
  * Create all Voronoi cell meshes from computed cells
@@ -216,7 +173,7 @@ export function createVoronoiCellsGroup(voronoiCells, cellToMeshData, options = 
         const meshData = cellToMeshData(cell);
         
         // Determine colors for this cell
-        let cellOptions = { ...baseOptions };
+        let cellOptions = { ...baseOptions, cellIndex: index };
         if (useVariedColors) {
             const colorScheme = CELL_COLOR_PALETTE[index % CELL_COLOR_PALETTE.length];
             cellOptions.fillColor = colorScheme.fill;
