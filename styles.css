@@ -904,7 +904,7 @@ body {
 }
 
 /* ============================================
-   KEYBOARD HELP HINT - Shows when panel is hidden
+   KEYBOARD HELP HINT - Shows when panel is visible
    ============================================ */
 .keyboard-hint {
     position: fixed;

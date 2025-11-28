@@ -241,7 +241,9 @@ function setupPanelToggle() {
         panel.classList.toggle('hidden', !show);
         restoreBtn.classList.toggle('visible', !show);
         if (keyboardHint) {
-            keyboardHint.classList.toggle('visible', !show);
+            // Show hint when panel is visible (to tell users they can press H to hide)
+            // Hide hint when panel is hidden (restore button is already visible)
+            keyboardHint.classList.toggle('visible', show);
         }
     };
     
