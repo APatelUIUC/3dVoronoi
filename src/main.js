@@ -14,18 +14,36 @@ import {
     createVoronoiCellsGroup, 
     createLighting,
     createReferenceGrid,
-    COLORS 
+    COLORS,
+    getThemeForDistribution,
+    THEME_PALETTES
 } from './cellRenderer.js';
 import { initUI } from './ui.js';
+import { generatePoints, DISTRIBUTIONS } from './pointDistributions.js';
+
+/**
+ * Helper to convert hex color to rgba
+ */
+function hexToRgba(hex, alpha = 1) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (result) {
+        const r = parseInt(result[1], 16);
+        const g = parseInt(result[2], 16);
+        const b = parseInt(result[3], 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    return hex;
+}
 
 // Application state
 const state = {
-    gridSize: 3,
+    gridSize: 6,
     layerSpacing: 1.0,
     showPoints: true,
-    showCells: false,
+    showCells: true,
     points: null,
     voronoiCells: null,
+    currentDistribution: 'honeycomb', // Current active distribution
 };
 
 // Three.js components
@@ -79,9 +97,9 @@ function initScene() {
     const lights = createLighting();
     lights.forEach(light => scene.add(light));
     
-    // Add reference grid
-    gridGroup = createReferenceGrid(10);
-    scene.add(gridGroup);
+    // Reference grid disabled - not needed for visualization
+    // gridGroup = createReferenceGrid(10);
+    // scene.add(gridGroup);
     
     // Handle window resize
     window.addEventListener('resize', onWindowResize);
@@ -101,18 +119,41 @@ function generateVisualization() {
         cellsGroup = null;
     }
     
-    // Generate honeycomb points
-    const result = generateHoneycombPoints(
-        state.gridSize, 
-        1.0,  // spacing
-        state.layerSpacing
-    );
-    state.points = result.points;
+    // Get theme for current distribution
+    const theme = getThemeForDistribution(state.currentDistribution);
     
-    // Create points visualization
+    // Apply theme to scene
+    applySceneTheme(theme);
+    
+    let points, boundingBox;
+    
+    if (state.currentDistribution === 'honeycomb') {
+        // Generate honeycomb points
+        const result = generateHoneycombPoints(
+            state.gridSize, 
+            1.0,  // spacing
+            state.layerSpacing
+        );
+        points = result.points;
+        boundingBox = result.metadata.boundingBox;
+    } else {
+        // Use the new distribution system
+        const result = generatePoints(
+            state.currentDistribution,
+            state.gridSize,
+            state.layerSpacing
+        );
+        points = result.points;
+        boundingBox = result.boundingBox;
+    }
+    
+    state.points = points;
+    
+    // Create points visualization with themed colors
     pointsGroup = createPointsGroup(state.points, {
         radius: 0.06,
         segments: 16,
+        pointColors: theme.points,
     });
     pointsGroup.visible = state.showPoints;
     scene.add(pointsGroup);
@@ -120,27 +161,65 @@ function generateVisualization() {
     // Compute Voronoi cells
     state.voronoiCells = computeVoronoiCells(
         state.points,
-        result.metadata.boundingBox,
+        boundingBox,
         1.0  // padding
     );
     
-    // Create cells visualization
+    // Create cells visualization with themed colors
     cellsGroup = createVoronoiCellsGroup(
         state.voronoiCells,
         cellToMeshData,
         {
-            fillOpacity: 0.12,
+            fillOpacity: 0.25,
             showFill: true,
             showEdges: true,
+            useVariedColors: true,
+            colorPalette: theme.cells,
         }
     );
     cellsGroup.visible = state.showCells;
     scene.add(cellsGroup);
     
     // Log info
-    console.log(`Generated ${state.points.length} points`);
+    const distInfo = DISTRIBUTIONS[state.currentDistribution];
+    console.log(`Generated ${state.points.length} points (${distInfo?.name || state.currentDistribution})`);
     console.log(`Computed ${state.voronoiCells.length} Voronoi cells`);
 }
+
+/**
+ * Apply theme colors to the scene
+ */
+function applySceneTheme(theme) {
+    // Update scene background
+    scene.background = new THREE.Color(theme.background);
+    
+    // Update fog
+    scene.fog = new THREE.Fog(theme.fog, 8, 25);
+    
+    // Apply UI theme via CSS custom properties
+    applyUITheme(theme.ui);
+}
+
+/**
+ * Apply UI theme colors via CSS custom properties
+ */
+function applyUITheme(uiColors) {
+    const root = document.documentElement;
+    
+    // Update CSS custom properties for the UI
+    root.style.setProperty('--theme-primary', uiColors.primary);
+    root.style.setProperty('--theme-primary-light', uiColors.primaryLight);
+    root.style.setProperty('--theme-primary-dark', uiColors.primaryDark);
+    root.style.setProperty('--theme-accent', uiColors.accent);
+    root.style.setProperty('--theme-text', uiColors.text);
+    
+    // Update body background gradient to match theme
+    const bgColor = uiColors.primaryDark;
+    root.style.setProperty('--theme-bg-gradient', 
+        `radial-gradient(ellipse at 30% 20%, ${hexToRgba(bgColor, 0.3)} 0%, transparent 50%)`
+    );
+}
+
 
 /**
  * Handle window resize
@@ -206,6 +285,27 @@ export function setLayerSpacing(spacing) {
 }
 
 /**
+ * Set distribution mode
+ */
+export function setDistribution(distributionId) {
+    if (DISTRIBUTIONS[distributionId] || distributionId === 'honeycomb') {
+        state.currentDistribution = distributionId;
+        showLoading();
+        setTimeout(() => {
+            generateVisualization();
+            hideLoading();
+        }, 50);
+    }
+}
+
+/**
+ * Get available distributions
+ */
+export function getDistributions() {
+    return DISTRIBUTIONS;
+}
+
+/**
  * Show loading indicator
  */
 function showLoading() {
@@ -251,6 +351,8 @@ function init() {
         toggleCells,
         setGridSize,
         setLayerSpacing,
+        setDistribution,
+        getDistributions,
         getState,
     });
     
