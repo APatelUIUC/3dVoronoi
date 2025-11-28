@@ -17,6 +17,7 @@ import {
     COLORS 
 } from './cellRenderer.js';
 import { initUI } from './ui.js';
+import { generatePoints, DISTRIBUTIONS } from './pointDistributions.js';
 
 // Application state
 const state = {
@@ -26,7 +27,7 @@ const state = {
     showCells: true,
     points: null,
     voronoiCells: null,
-    isRandomMode: false,
+    currentDistribution: 'honeycomb', // Current active distribution
 };
 
 // Three.js components
@@ -104,12 +105,7 @@ function generateVisualization() {
     
     let points, boundingBox;
     
-    if (state.isRandomMode) {
-        // Generate random points in a bounded region
-        const result = generateRandomPoints(state.gridSize);
-        points = result.points;
-        boundingBox = result.boundingBox;
-    } else {
+    if (state.currentDistribution === 'honeycomb') {
         // Generate honeycomb points
         const result = generateHoneycombPoints(
             state.gridSize, 
@@ -118,6 +114,15 @@ function generateVisualization() {
         );
         points = result.points;
         boundingBox = result.metadata.boundingBox;
+    } else {
+        // Use the new distribution system
+        const result = generatePoints(
+            state.currentDistribution,
+            state.gridSize,
+            state.layerSpacing
+        );
+        points = result.points;
+        boundingBox = result.boundingBox;
     }
     
     state.points = points;
@@ -152,49 +157,11 @@ function generateVisualization() {
     scene.add(cellsGroup);
     
     // Log info
-    console.log(`Generated ${state.points.length} points (${state.isRandomMode ? 'random' : 'honeycomb'})`);
+    const distInfo = DISTRIBUTIONS[state.currentDistribution];
+    console.log(`Generated ${state.points.length} points (${distInfo?.name || state.currentDistribution})`);
     console.log(`Computed ${state.voronoiCells.length} Voronoi cells`);
 }
 
-/**
- * Generate random points in a bounded region
- */
-function generateRandomPoints(gridSize) {
-    const count = gridSize * gridSize * 2; // Similar count to honeycomb
-    const points = [];
-    
-    // Determine bounds based on grid size
-    const spread = gridSize * 0.6;
-    const zSpread = spread * 0.4;
-    
-    for (let i = 0; i < count; i++) {
-        points.push({
-            x: (Math.random() - 0.5) * spread * 2,
-            y: (Math.random() - 0.5) * spread * 2,
-            z: (Math.random() - 0.5) * zSpread * 2,
-            layer: Math.random() > 0.5 ? 'A' : 'B',
-            id: `R-${i}`
-        });
-    }
-    
-    // Calculate bounding box
-    const min = { x: Infinity, y: Infinity, z: Infinity };
-    const max = { x: -Infinity, y: -Infinity, z: -Infinity };
-    
-    for (const pt of points) {
-        min.x = Math.min(min.x, pt.x);
-        min.y = Math.min(min.y, pt.y);
-        min.z = Math.min(min.z, pt.z);
-        max.x = Math.max(max.x, pt.x);
-        max.y = Math.max(max.y, pt.y);
-        max.z = Math.max(max.z, pt.z);
-    }
-    
-    return {
-        points,
-        boundingBox: { min, max }
-    };
-}
 
 /**
  * Handle window resize
@@ -260,27 +227,24 @@ export function setLayerSpacing(spacing) {
 }
 
 /**
- * Set random point mode
+ * Set distribution mode
  */
-export function setRandomMode() {
-    state.isRandomMode = true;
-    showLoading();
-    setTimeout(() => {
-        generateVisualization();
-        hideLoading();
-    }, 50);
+export function setDistribution(distributionId) {
+    if (DISTRIBUTIONS[distributionId] || distributionId === 'honeycomb') {
+        state.currentDistribution = distributionId;
+        showLoading();
+        setTimeout(() => {
+            generateVisualization();
+            hideLoading();
+        }, 50);
+    }
 }
 
 /**
- * Reset to honeycomb pattern
+ * Get available distributions
  */
-export function resetToHoneycomb() {
-    state.isRandomMode = false;
-    showLoading();
-    setTimeout(() => {
-        generateVisualization();
-        hideLoading();
-    }, 50);
+export function getDistributions() {
+    return DISTRIBUTIONS;
 }
 
 /**
@@ -329,8 +293,8 @@ function init() {
         toggleCells,
         setGridSize,
         setLayerSpacing,
-        setRandomMode,
-        resetToHoneycomb,
+        setDistribution,
+        getDistributions,
         getState,
     });
     

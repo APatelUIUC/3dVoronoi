@@ -16,7 +16,7 @@ export function initUI(appApi) {
     
     setupToggleButtons();
     setupSliders();
-    setupModeButtons();
+    setupDistributionSelector();
     setupKeyboardShortcuts();
     
     // Sync initial state to UI
@@ -58,39 +58,118 @@ function updateToggleAccessibility(button, isActive) {
 }
 
 /**
- * Set up mode buttons (Random/Honeycomb)
+ * Set up distribution selector
  */
-function setupModeButtons() {
-    const randomBtn = document.getElementById('btn-random');
-    const honeycombBtn = document.getElementById('btn-honeycomb');
+function setupDistributionSelector() {
+    const selector = document.getElementById('distribution-selector');
+    const selectedDisplay = document.getElementById('selected-distribution');
+    const optionsContainer = document.getElementById('distribution-options');
     
-    if (randomBtn) {
-        randomBtn.addEventListener('click', () => {
-            api.setRandomMode();
-            updateModeButtonState(true);
-            showNotification('🎲 Random points generated');
-        });
-    }
+    if (!selector || !selectedDisplay || !optionsContainer) return;
     
-    if (honeycombBtn) {
-        honeycombBtn.addEventListener('click', () => {
-            api.resetToHoneycomb();
-            updateModeButtonState(false);
-            showNotification('🍯 Honeycomb pattern restored');
-        });
-    }
+    const distributions = api.getDistributions();
+    const state = api.getState();
+    
+    // Build the options HTML
+    const categories = {
+        crystalline: { name: 'Crystalline', items: [] },
+        organic: { name: 'Organic', items: [] },
+        chaotic: { name: 'Chaotic', items: [] }
+    };
+    
+    // Add honeycomb manually (it's special)
+    categories.crystalline.items.push({
+        id: 'honeycomb',
+        name: 'Honeycomb',
+        icon: '🍯',
+        description: 'Hexagonal close-packing (ABAB) - nature\'s optimal pattern'
+    });
+    
+    // Sort distributions into categories
+    Object.values(distributions).forEach(dist => {
+        if (categories[dist.category]) {
+            categories[dist.category].items.push(dist);
+        }
+    });
+    
+    // Generate options HTML
+    let optionsHTML = '';
+    Object.values(categories).forEach(category => {
+        if (category.items.length > 0) {
+            optionsHTML += `<div class="distribution-category"><span class="category-label">${category.name}</span>`;
+            category.items.forEach(dist => {
+                const isActive = state.currentDistribution === dist.id ? 'active' : '';
+                optionsHTML += `
+                    <button class="distribution-option ${isActive}" data-distribution="${dist.id}">
+                        <span class="dist-icon">${dist.icon}</span>
+                        <span class="dist-info">
+                            <span class="dist-name">${dist.name}</span>
+                            <span class="dist-desc">${dist.description}</span>
+                        </span>
+                    </button>
+                `;
+            });
+            optionsHTML += '</div>';
+        }
+    });
+    
+    optionsContainer.innerHTML = optionsHTML;
+    
+    // Update selected display
+    updateSelectedDistribution(state.currentDistribution, distributions);
+    
+    // Toggle dropdown
+    selectedDisplay.addEventListener('click', () => {
+        selector.classList.toggle('open');
+    });
+    
+    // Handle option clicks
+    optionsContainer.addEventListener('click', (e) => {
+        const option = e.target.closest('.distribution-option');
+        if (option) {
+            const distId = option.dataset.distribution;
+            api.setDistribution(distId);
+            
+            // Update UI
+            optionsContainer.querySelectorAll('.distribution-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.distribution === distId);
+            });
+            updateSelectedDistribution(distId, distributions);
+            selector.classList.remove('open');
+            
+            // Show notification
+            const dist = distId === 'honeycomb' 
+                ? { icon: '🍯', name: 'Honeycomb' }
+                : distributions[distId];
+            showNotification(`${dist.icon} ${dist.name} pattern applied`);
+        }
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!selector.contains(e.target)) {
+            selector.classList.remove('open');
+        }
+    });
 }
 
 /**
- * Update mode button visual state
+ * Update the selected distribution display
  */
-function updateModeButtonState(isRandomMode) {
-    const randomBtn = document.getElementById('btn-random');
-    const honeycombBtn = document.getElementById('btn-honeycomb');
+function updateSelectedDistribution(distId, distributions) {
+    const selectedDisplay = document.getElementById('selected-distribution');
+    if (!selectedDisplay) return;
     
-    if (randomBtn && honeycombBtn) {
-        randomBtn.classList.toggle('active', isRandomMode);
-        honeycombBtn.classList.toggle('active', !isRandomMode);
+    const dist = distId === 'honeycomb'
+        ? { icon: '🍯', name: 'Honeycomb' }
+        : distributions[distId];
+    
+    if (dist) {
+        selectedDisplay.innerHTML = `
+            <span class="selected-icon">${dist.icon}</span>
+            <span class="selected-name">${dist.name}</span>
+            <span class="dropdown-arrow">▼</span>
+        `;
     }
 }
 
@@ -503,6 +582,14 @@ export function syncUIState(state) {
         layerSpacingSlider.value = state.layerSpacing;
         const display = document.getElementById('layer-spacing-value');
         if (display) updateLayerSpacingDisplay(state.layerSpacing, display);
+    }
+    
+    // Update distribution selector
+    const optionsContainer = document.getElementById('distribution-options');
+    if (optionsContainer) {
+        optionsContainer.querySelectorAll('.distribution-option').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.distribution === state.currentDistribution);
+        });
     }
 }
 

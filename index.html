@@ -31,17 +31,17 @@
             </div>
             
             <h2>Point Distribution</h2>
-            <div class="mode-group">
-                <button id="btn-honeycomb" class="mode-btn active">
-                    <span class="icon">🍯</span>
-                    <span class="label">Honeycomb</span>
-                </button>
-                <button id="btn-random" class="mode-btn">
-                    <span class="icon">🎲</span>
-                    <span class="label">Randomize</span>
-                </button>
+            <div id="distribution-selector" class="distribution-selector">
+                <div id="selected-distribution" class="selected-distribution">
+                    <span class="selected-icon">🍯</span>
+                    <span class="selected-name">Honeycomb</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div id="distribution-options" class="distribution-options">
+                    <!-- Options populated by JavaScript -->
+                </div>
             </div>
-            <p class="mode-hint">Compare honeycomb's optimal packing vs random points</p>
+            <p class="mode-hint">Choose from crystalline lattices, organic patterns, or chaotic distributions</p>
             
             <div class="slider-group">
                 <label for="grid-size">Grid Size</label>

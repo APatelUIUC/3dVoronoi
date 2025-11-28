@@ -391,92 +391,192 @@ body {
 }
 
 /* ============================================
-   MODE BUTTONS (Honeycomb / Random)
+   DISTRIBUTION SELECTOR (Dropdown)
    ============================================ */
-.mode-group {
-    display: flex;
-    gap: 10px;
+.distribution-selector {
+    position: relative;
     margin-bottom: 10px;
 }
 
-.mode-btn {
-    flex: 1;
+.selected-distribution {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    gap: 12px;
     padding: 14px 18px;
     background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.04) 0%, 
-        rgba(255, 255, 255, 0.01) 100%
+        rgba(251, 191, 36, 0.12) 0%, 
+        rgba(245, 158, 11, 0.06) 100%
     );
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.3);
     border-radius: 12px;
-    color: var(--text-muted);
+    color: var(--amber-200);
     cursor: pointer;
     transition: all 0.3s var(--ease-out-expo);
     font-family: inherit;
-    font-size: 0.9rem;
-    position: relative;
-    overflow: hidden;
 }
 
-.mode-btn::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 120%;
-    height: 120%;
-    background: radial-gradient(circle, 
-        rgba(251, 191, 36, 0.2) 0%, 
-        transparent 70%
-    );
-    transform: translate(-50%, -50%) scale(0);
-    transition: transform 0.5s var(--ease-out-expo);
-    pointer-events: none;
-}
-
-.mode-btn:hover {
-    border-color: rgba(251, 191, 36, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px -8px rgba(251, 191, 36, 0.2);
-}
-
-.mode-btn:hover::after {
-    transform: translate(-50%, -50%) scale(1);
-}
-
-.mode-btn:active {
-    transform: translateY(0) scale(0.98);
-    transition-duration: 0.1s;
-}
-
-.mode-btn.active {
+.selected-distribution:hover {
+    border-color: rgba(251, 191, 36, 0.5);
     background: linear-gradient(135deg, 
-        rgba(251, 191, 36, 0.2) 0%, 
-        rgba(245, 158, 11, 0.12) 100%
+        rgba(251, 191, 36, 0.18) 0%, 
+        rgba(245, 158, 11, 0.1) 100%
     );
-    border-color: var(--amber-500);
-    color: var(--amber-200);
-    box-shadow: 
-        0 0 0 1px rgba(251, 191, 36, 0.15) inset,
-        0 8px 24px -8px rgba(251, 191, 36, 0.35);
+    box-shadow: 0 8px 24px -8px rgba(251, 191, 36, 0.25);
 }
 
-.mode-btn .icon {
-    font-size: 1.2rem;
+.selected-icon {
+    font-size: 1.3rem;
     line-height: 1;
-    transition: transform 0.3s var(--ease-spring);
 }
 
-.mode-btn:hover .icon {
-    transform: scale(1.2) rotate(-5deg);
-}
-
-.mode-btn .label {
+.selected-name {
+    flex: 1;
     font-weight: 600;
+    font-size: 0.95rem;
     letter-spacing: 0.01em;
+}
+
+.dropdown-arrow {
+    font-size: 0.7rem;
+    color: var(--amber-400);
+    transition: transform 0.3s var(--ease-out-expo);
+}
+
+.distribution-selector.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.distribution-options {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, 
+        rgba(28, 25, 23, 0.98) 0%, 
+        rgba(12, 10, 9, 0.95) 100%
+    );
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: 14px;
+    padding: 8px;
+    max-height: 360px;
+    overflow-y: auto;
+    z-index: 200;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.98);
+    transition: all 0.3s var(--ease-out-expo);
+    box-shadow: 
+        0 20px 40px -15px rgba(0, 0, 0, 0.5),
+        0 0 60px -20px rgba(251, 191, 36, 0.15);
+    backdrop-filter: blur(16px);
+}
+
+.distribution-selector.open .distribution-options {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.distribution-category {
+    margin-bottom: 8px;
+}
+
+.distribution-category:last-child {
+    margin-bottom: 0;
+}
+
+.category-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--amber-500);
+    padding: 8px 12px 6px;
+    opacity: 0.9;
+}
+
+.distribution-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-out-expo);
+    font-family: inherit;
+    text-align: left;
+}
+
+.distribution-option:hover {
+    background: rgba(251, 191, 36, 0.08);
+    border-color: rgba(251, 191, 36, 0.15);
+    color: var(--text-primary);
+}
+
+.distribution-option.active {
+    background: linear-gradient(135deg, 
+        rgba(251, 191, 36, 0.15) 0%, 
+        rgba(245, 158, 11, 0.08) 100%
+    );
+    border-color: rgba(251, 191, 36, 0.3);
+    color: var(--amber-200);
+}
+
+.dist-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.dist-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.dist-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: inherit;
+}
+
+.dist-desc {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    opacity: 0.85;
+}
+
+.distribution-option:hover .dist-desc,
+.distribution-option.active .dist-desc {
+    color: var(--text-secondary);
+    opacity: 1;
+}
+
+/* Custom scrollbar for distribution options */
+.distribution-options::-webkit-scrollbar {
+    width: 6px;
+}
+
+.distribution-options::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.distribution-options::-webkit-scrollbar-thumb {
+    background: rgba(251, 191, 36, 0.3);
+    border-radius: 3px;
+}
+
+.distribution-options::-webkit-scrollbar-thumb:hover {
+    background: rgba(251, 191, 36, 0.5);
 }
 
 .mode-hint {
