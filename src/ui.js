@@ -6,6 +6,7 @@
  */
 
 let api = null;
+let isPanelVisible = true;
 
 /**
  * Initialize UI controls
@@ -17,6 +18,8 @@ export function initUI(appApi) {
     setupToggleButtons();
     setupSliders();
     setupDistributionSelector();
+    setupPanelToggle();
+    setupCollapsibleSections();
     setupKeyboardShortcuts();
     
     // Sync initial state to UI
@@ -92,7 +95,7 @@ function setupDistributionSelector() {
         }
     });
     
-    // Generate options HTML
+    // Generate options HTML - compact version with icon + name only
     let optionsHTML = '';
     Object.values(categories).forEach(category => {
         if (category.items.length > 0) {
@@ -100,12 +103,9 @@ function setupDistributionSelector() {
             category.items.forEach(dist => {
                 const isActive = state.currentDistribution === dist.id ? 'active' : '';
                 optionsHTML += `
-                    <button class="distribution-option ${isActive}" data-distribution="${dist.id}">
+                    <button class="distribution-option ${isActive}" data-distribution="${dist.id}" title="${dist.description}">
                         <span class="dist-icon">${dist.icon}</span>
-                        <span class="dist-info">
-                            <span class="dist-name">${dist.name}</span>
-                            <span class="dist-desc">${dist.description}</span>
-                        </span>
+                        <span class="dist-name">${dist.name}</span>
                     </button>
                 `;
             });
@@ -226,6 +226,47 @@ function updateLayerSpacingDisplay(value, element) {
 }
 
 /**
+ * Set up panel hide/show toggle
+ */
+function setupPanelToggle() {
+    const panel = document.getElementById('info-panel');
+    const minimizeBtn = document.getElementById('panel-minimize');
+    const restoreBtn = document.getElementById('panel-restore');
+    const keyboardHint = document.querySelector('.keyboard-hint');
+    
+    if (!panel || !minimizeBtn || !restoreBtn) return;
+    
+    const togglePanel = (show) => {
+        isPanelVisible = show;
+        panel.classList.toggle('hidden', !show);
+        restoreBtn.classList.toggle('visible', !show);
+        if (keyboardHint) {
+            keyboardHint.classList.toggle('visible', !show);
+        }
+    };
+    
+    minimizeBtn.addEventListener('click', () => togglePanel(false));
+    restoreBtn.addEventListener('click', () => togglePanel(true));
+    
+    // Export toggle function for keyboard shortcut
+    window.togglePanelVisibility = () => togglePanel(!isPanelVisible);
+}
+
+/**
+ * Set up collapsible sections (Learn More)
+ */
+function setupCollapsibleSections() {
+    const learnMoreSection = document.getElementById('learn-more-section');
+    const learnMoreToggle = document.getElementById('learn-more-toggle');
+    
+    if (!learnMoreSection || !learnMoreToggle) return;
+    
+    learnMoreToggle.addEventListener('click', () => {
+        learnMoreSection.classList.toggle('open');
+    });
+}
+
+/**
  * Set up keyboard shortcuts
  */
 function setupKeyboardShortcuts() {
@@ -266,9 +307,15 @@ function setupKeyboardShortcuts() {
                 // Reset view (would need camera reset function)
                 break;
                 
-            case '?':
             case 'h':
-                // Show help (could toggle a help overlay)
+                // Toggle panel visibility
+                if (window.togglePanelVisibility) {
+                    window.togglePanelVisibility();
+                }
+                break;
+                
+            case '?':
+                // Show help overlay
                 showKeyboardHelp();
                 break;
         }

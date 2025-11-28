@@ -7,15 +7,9 @@
 
 /**
  * Distribution metadata for UI display
+ * Note: Honeycomb is handled separately via hexGrid.js and added manually in UI
  */
 export const DISTRIBUTIONS = {
-    honeycomb: {
-        id: 'honeycomb',
-        name: 'Honeycomb',
-        icon: '🍯',
-        description: 'Hexagonal close-packing (ABAB) - nature\'s optimal pattern',
-        category: 'crystalline'
-    },
     random: {
         id: 'random',
         name: 'Random',
