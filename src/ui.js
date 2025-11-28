@@ -269,6 +269,70 @@ function setupCollapsibleSections() {
 }
 
 /**
+ * Get ordered list of distribution IDs for navigation
+ */
+function getDistributionOrder() {
+    // Return distributions in a logical order: honeycomb first, then by category
+    return [
+        'honeycomb',
+        'bcc',
+        'fcc', 
+        'simpleCubic',
+        'diamondLattice',
+        'fibonacciSphere',
+        'doubleHelix',
+        'concentricShells',
+        'spiralTower',
+        'random',
+        'galaxy',
+        'jitteredGrid'
+    ];
+}
+
+/**
+ * Navigate to next or previous distribution
+ */
+function navigateDistribution(direction) {
+    const distributions = api.getDistributions();
+    const state = api.getState();
+    const order = getDistributionOrder();
+    
+    const currentIndex = order.indexOf(state.currentDistribution);
+    let newIndex;
+    
+    if (currentIndex === -1) {
+        // Current distribution not found, start at beginning
+        newIndex = 0;
+    } else {
+        newIndex = currentIndex + direction;
+        // Wrap around
+        if (newIndex < 0) {
+            newIndex = order.length - 1;
+        } else if (newIndex >= order.length) {
+            newIndex = 0;
+        }
+    }
+    
+    const newDistId = order[newIndex];
+    api.setDistribution(newDistId);
+    
+    // Update UI
+    const optionsContainer = document.getElementById('distribution-options');
+    if (optionsContainer) {
+        optionsContainer.querySelectorAll('.distribution-option').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.distribution === newDistId);
+        });
+    }
+    updateSelectedDistribution(newDistId, distributions);
+    
+    // Show notification
+    const dist = newDistId === 'honeycomb' 
+        ? { icon: '🍯', name: 'Honeycomb' }
+        : distributions[newDistId];
+    showNotification(`${dist.icon} ${dist.name} pattern`);
+}
+
+/**
  * Set up keyboard shortcuts
  */
 function setupKeyboardShortcuts() {
@@ -320,6 +384,35 @@ function setupKeyboardShortcuts() {
                 // Show help overlay
                 showKeyboardHelp();
                 break;
+                
+            case 'arrowleft':
+                // Previous distribution
+                e.preventDefault();
+                navigateDistribution(-1);
+                break;
+                
+            case 'arrowright':
+                // Next distribution
+                e.preventDefault();
+                navigateDistribution(1);
+                break;
+                
+            case ' ':
+                // Space bar - random distribution
+                e.preventDefault();
+                api.setDistribution('random');
+                
+                // Update UI
+                const distributions = api.getDistributions();
+                const optionsContainer = document.getElementById('distribution-options');
+                if (optionsContainer) {
+                    optionsContainer.querySelectorAll('.distribution-option').forEach(opt => {
+                        opt.classList.toggle('active', opt.dataset.distribution === 'random');
+                    });
+                }
+                updateSelectedDistribution('random', distributions);
+                showNotification(`🎲 New random distribution`);
+                break;
         }
     });
 }
@@ -350,6 +443,11 @@ function showKeyboardHelp() {
                     <div class="shortcut-row"><kbd>P</kbd><span>Toggle seed points</span></div>
                     <div class="shortcut-row"><kbd>C</kbd><span>Toggle Voronoi cells</span></div>
                     <div class="shortcut-row"><kbd>B</kbd><span>Toggle both</span></div>
+                </div>
+                <div class="help-section">
+                    <h4>Patterns</h4>
+                    <div class="shortcut-row"><kbd>←</kbd> / <kbd>→</kbd><span>Previous / Next pattern</span></div>
+                    <div class="shortcut-row"><kbd>Space</kbd><span>New random distribution</span></div>
                 </div>
                 <div class="help-section">
                     <h4>Navigation</h4>
