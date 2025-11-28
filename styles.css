@@ -178,6 +178,60 @@ body {
     font-weight: 500;
 }
 
+/* Mode buttons (Honeycomb / Random) */
+.mode-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.mode-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.mode-btn:hover {
+    background: rgba(251, 191, 36, 0.08);
+    border-color: rgba(251, 191, 36, 0.3);
+    transform: translateY(-1px);
+}
+
+.mode-btn.active {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.15));
+    border-color: var(--amber-500);
+    color: var(--amber-300);
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.2);
+}
+
+.mode-btn .icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.mode-btn .label {
+    font-weight: 500;
+}
+
+.mode-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
 /* Sliders */
 .slider-group {
     margin-top: 16px;

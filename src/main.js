@@ -20,12 +20,13 @@ import { initUI } from './ui.js';
 
 // Application state
 const state = {
-    gridSize: 3,
+    gridSize: 6,
     layerSpacing: 1.0,
     showPoints: true,
-    showCells: false,
+    showCells: true,
     points: null,
     voronoiCells: null,
+    isRandomMode: false,
 };
 
 // Three.js components
@@ -101,13 +102,25 @@ function generateVisualization() {
         cellsGroup = null;
     }
     
-    // Generate honeycomb points
-    const result = generateHoneycombPoints(
-        state.gridSize, 
-        1.0,  // spacing
-        state.layerSpacing
-    );
-    state.points = result.points;
+    let points, boundingBox;
+    
+    if (state.isRandomMode) {
+        // Generate random points in a bounded region
+        const result = generateRandomPoints(state.gridSize);
+        points = result.points;
+        boundingBox = result.boundingBox;
+    } else {
+        // Generate honeycomb points
+        const result = generateHoneycombPoints(
+            state.gridSize, 
+            1.0,  // spacing
+            state.layerSpacing
+        );
+        points = result.points;
+        boundingBox = result.metadata.boundingBox;
+    }
+    
+    state.points = points;
     
     // Create points visualization
     pointsGroup = createPointsGroup(state.points, {
@@ -120,26 +133,67 @@ function generateVisualization() {
     // Compute Voronoi cells
     state.voronoiCells = computeVoronoiCells(
         state.points,
-        result.metadata.boundingBox,
+        boundingBox,
         1.0  // padding
     );
     
-    // Create cells visualization
+    // Create cells visualization with varied colors
     cellsGroup = createVoronoiCellsGroup(
         state.voronoiCells,
         cellToMeshData,
         {
-            fillOpacity: 0.12,
+            fillOpacity: 0.25,
             showFill: true,
             showEdges: true,
+            useVariedColors: true,
         }
     );
     cellsGroup.visible = state.showCells;
     scene.add(cellsGroup);
     
     // Log info
-    console.log(`Generated ${state.points.length} points`);
+    console.log(`Generated ${state.points.length} points (${state.isRandomMode ? 'random' : 'honeycomb'})`);
     console.log(`Computed ${state.voronoiCells.length} Voronoi cells`);
+}
+
+/**
+ * Generate random points in a bounded region
+ */
+function generateRandomPoints(gridSize) {
+    const count = gridSize * gridSize * 2; // Similar count to honeycomb
+    const points = [];
+    
+    // Determine bounds based on grid size
+    const spread = gridSize * 0.6;
+    const zSpread = spread * 0.4;
+    
+    for (let i = 0; i < count; i++) {
+        points.push({
+            x: (Math.random() - 0.5) * spread * 2,
+            y: (Math.random() - 0.5) * spread * 2,
+            z: (Math.random() - 0.5) * zSpread * 2,
+            layer: Math.random() > 0.5 ? 'A' : 'B',
+            id: `R-${i}`
+        });
+    }
+    
+    // Calculate bounding box
+    const min = { x: Infinity, y: Infinity, z: Infinity };
+    const max = { x: -Infinity, y: -Infinity, z: -Infinity };
+    
+    for (const pt of points) {
+        min.x = Math.min(min.x, pt.x);
+        min.y = Math.min(min.y, pt.y);
+        min.z = Math.min(min.z, pt.z);
+        max.x = Math.max(max.x, pt.x);
+        max.y = Math.max(max.y, pt.y);
+        max.z = Math.max(max.z, pt.z);
+    }
+    
+    return {
+        points,
+        boundingBox: { min, max }
+    };
 }
 
 /**
@@ -206,6 +260,30 @@ export function setLayerSpacing(spacing) {
 }
 
 /**
+ * Set random point mode
+ */
+export function setRandomMode() {
+    state.isRandomMode = true;
+    showLoading();
+    setTimeout(() => {
+        generateVisualization();
+        hideLoading();
+    }, 50);
+}
+
+/**
+ * Reset to honeycomb pattern
+ */
+export function resetToHoneycomb() {
+    state.isRandomMode = false;
+    showLoading();
+    setTimeout(() => {
+        generateVisualization();
+        hideLoading();
+    }, 50);
+}
+
+/**
  * Show loading indicator
  */
 function showLoading() {
@@ -251,6 +329,8 @@ function init() {
         toggleCells,
         setGridSize,
         setLayerSpacing,
+        setRandomMode,
+        resetToHoneycomb,
         getState,
     });
     

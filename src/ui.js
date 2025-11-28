@@ -16,7 +16,11 @@ export function initUI(appApi) {
     
     setupToggleButtons();
     setupSliders();
+    setupModeButtons();
     setupKeyboardShortcuts();
+    
+    // Sync initial state to UI
+    syncUIState(api.getState());
 }
 
 /**
@@ -51,6 +55,43 @@ function setupToggleButtons() {
  */
 function updateToggleAccessibility(button, isActive) {
     button.setAttribute('aria-pressed', isActive.toString());
+}
+
+/**
+ * Set up mode buttons (Random/Honeycomb)
+ */
+function setupModeButtons() {
+    const randomBtn = document.getElementById('btn-random');
+    const honeycombBtn = document.getElementById('btn-honeycomb');
+    
+    if (randomBtn) {
+        randomBtn.addEventListener('click', () => {
+            api.setRandomMode();
+            updateModeButtonState(true);
+            showNotification('🎲 Random points generated');
+        });
+    }
+    
+    if (honeycombBtn) {
+        honeycombBtn.addEventListener('click', () => {
+            api.resetToHoneycomb();
+            updateModeButtonState(false);
+            showNotification('🍯 Honeycomb pattern restored');
+        });
+    }
+}
+
+/**
+ * Update mode button visual state
+ */
+function updateModeButtonState(isRandomMode) {
+    const randomBtn = document.getElementById('btn-random');
+    const honeycombBtn = document.getElementById('btn-honeycomb');
+    
+    if (randomBtn && honeycombBtn) {
+        randomBtn.classList.toggle('active', isRandomMode);
+        honeycombBtn.classList.toggle('active', !isRandomMode);
+    }
 }
 
 /**

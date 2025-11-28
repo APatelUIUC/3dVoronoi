@@ -19,6 +19,25 @@ const COLORS = {
 };
 
 /**
+ * Varied color palette for distinguishing cells - honeycomb theme
+ * Uses variations of amber, gold, honey, and warm yellows
+ */
+const CELL_COLOR_PALETTE = [
+    { fill: 0xfbbf24, edge: 0xd97706 },  // Classic amber
+    { fill: 0xfcd34d, edge: 0xf59e0b },  // Bright gold
+    { fill: 0xf59e0b, edge: 0xb45309 },  // Deep amber
+    { fill: 0xfde68a, edge: 0xfbbf24 },  // Light honey
+    { fill: 0xeab308, edge: 0xa16207 },  // Golden yellow
+    { fill: 0xfef08a, edge: 0xeab308 },  // Pale gold
+    { fill: 0xca8a04, edge: 0x854d0e },  // Dark honey
+    { fill: 0xfacc15, edge: 0xca8a04 },  // Sunflower
+    { fill: 0xd97706, edge: 0x92400e },  // Burnt amber
+    { fill: 0xfef3c7, edge: 0xfcd34d },  // Cream gold
+    { fill: 0xb45309, edge: 0x78350f },  // Bronze
+    { fill: 0xfde047, edge: 0xeab308 },  // Lemon gold
+];
+
+/**
  * Create a Three.js mesh for a Voronoi cell
  * @param {Object} meshData - Output from cellToMeshData
  * @param {Object} options - Rendering options
@@ -191,13 +210,23 @@ function createGlowTexture() {
  */
 export function createVoronoiCellsGroup(voronoiCells, cellToMeshData, options = {}) {
     const group = new THREE.Group();
+    const { useVariedColors = false, ...baseOptions } = options;
     
-    for (const { seed, cell } of voronoiCells) {
+    voronoiCells.forEach(({ seed, cell }, index) => {
         const meshData = cellToMeshData(cell);
-        const cellMesh = createCellMesh(meshData, options);
-        cellMesh.userData = { seed, meshData };
+        
+        // Determine colors for this cell
+        let cellOptions = { ...baseOptions };
+        if (useVariedColors) {
+            const colorScheme = CELL_COLOR_PALETTE[index % CELL_COLOR_PALETTE.length];
+            cellOptions.fillColor = colorScheme.fill;
+            cellOptions.edgeColor = colorScheme.edge;
+        }
+        
+        const cellMesh = createCellMesh(meshData, cellOptions);
+        cellMesh.userData = { seed, meshData, colorIndex: index % CELL_COLOR_PALETTE.length };
         group.add(cellMesh);
-    }
+    });
     
     return group;
 }

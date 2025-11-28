@@ -30,16 +30,29 @@
                     <span class="icon">●</span>
                     <span class="label">Seed Points</span>
                 </button>
-                <button id="toggle-cells" class="toggle-btn">
+                <button id="toggle-cells" class="toggle-btn active">
                     <span class="icon">⬡</span>
                     <span class="label">Voronoi Cells</span>
                 </button>
             </div>
             
+            <h2>Point Distribution</h2>
+            <div class="mode-group">
+                <button id="btn-honeycomb" class="mode-btn active">
+                    <span class="icon">🍯</span>
+                    <span class="label">Honeycomb</span>
+                </button>
+                <button id="btn-random" class="mode-btn">
+                    <span class="icon">🎲</span>
+                    <span class="label">Randomize</span>
+                </button>
+            </div>
+            <p class="mode-hint">Compare honeycomb's optimal packing vs random points</p>
+            
             <div class="slider-group">
                 <label for="grid-size">Grid Size</label>
-                <input type="range" id="grid-size" min="2" max="6" value="3" step="1">
-                <span id="grid-size-value">3×3</span>
+                <input type="range" id="grid-size" min="2" max="8" value="6" step="1">
+                <span id="grid-size-value">6×6</span>
             </div>
             
             <div class="slider-group">
